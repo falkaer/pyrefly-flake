@@ -1,0 +1,41 @@
+name: Update Pyrefly
+on:
+  schedule:
+    # Check for new releases daily at 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: Get latest pyrefly version
+        id: latest
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/facebook/pyrefly/releases/latest | jq -r .tag_name)
+          echo "version=$LATEST" >> $GITHUB_OUTPUT
+      - name: Get current version
+        id: current
+        run: |
+          CURRENT=$(nix eval --raw .#pyrefly.version)
+          echo "version=$CURRENT" >> $GITHUB_OUTPUT
+      - name: Update flake if new version available
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        run: |
+          nix run nixpkgs#nix-update -- --flake --version=${{ steps.latest.outputs.version }} pyrefly
+          nix flake update
+      - name: Create Pull Request
+        if: steps.latest.outputs.version != steps.current.outputs.version
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: update pyrefly to ${{ steps.latest.outputs.version }}"
+          title: "Update pyrefly to ${{ steps.latest.outputs.version }}"
+          body: |
+            Automated update of pyrefly from ${{ steps.current.outputs.version }} to ${{ steps.latest.outputs.version }}
+
+            Release: https://github.com/facebook/pyrefly/releases/tag/${{ steps.latest.outputs.version }}
+          branch: update-pyrefly-${{ steps.latest.outputs.version }}
