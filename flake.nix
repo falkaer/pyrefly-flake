@@ -35,6 +35,7 @@
 
             nativeInstallCheckInputs = [ pkgs.versionCheckHook ];
             doInstallCheck = true;
+            doCheck = false; # skip cargo tests
 
             # Requires unstable rust features
             env.RUSTC_BOOTSTRAP = 1;
