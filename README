@@ -1,3 +1,1 @@
-To update to a new version, run e.g.:
-
-`nix run nixpkgs#nix-update -- --flake --version=0.38.0 pyrefly`
+Simple flake that follows the latest tagged release of https://github.com/facebook/pyrefly.
