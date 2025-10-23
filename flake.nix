@@ -27,11 +27,11 @@
               owner = "facebook";
               repo = "pyrefly";
               tag = finalAttrs.version;
-              hash = "sha256-HPPDsvWEFfh/GNMUPiVjQr28YBBs2DACBGM3cxo5Nx4=";
+              hash = "sha256-MNge+nAlXB1bp+xpHrbvFx/ASZcvKisVJ1erbmUvEyM=";
             };
 
             buildAndTestSubdir = "pyrefly";
-            cargoHash = "sha256-46kcoBG/PWwf8VdlvLNzEhfYRTmmKi/uTjwFkl7Wozg=";
+            cargoHash = "sha256-5p2v26raJ80cqJSiuhWKnUPcdq0tYN3KpFde46yX6nE=";
 
             nativeInstallCheckInputs = [ pkgs.versionCheckHook ];
             doInstallCheck = true;
