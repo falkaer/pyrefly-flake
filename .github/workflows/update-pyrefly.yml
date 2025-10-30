@@ -4,6 +4,8 @@ on:
     # Check for new releases daily at 00:00 UTC
     - cron: '0 0 * * *'
   workflow_dispatch: # Allow manual trigger
+permissions:
+  contents: write
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -28,14 +30,11 @@ jobs:
         run: |
           nix run nixpkgs#nix-update -- --flake --version=${{ steps.latest.outputs.version }} pyrefly
           nix flake update
-      - name: Create Pull Request
+      - name: Commit and push changes
         if: steps.latest.outputs.version != steps.current.outputs.version
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore: update pyrefly to ${{ steps.latest.outputs.version }}"
-          title: "Update pyrefly to ${{ steps.latest.outputs.version }}"
-          body: |
-            Automated update of pyrefly from ${{ steps.current.outputs.version }} to ${{ steps.latest.outputs.version }}
-
-            Release: https://github.com/facebook/pyrefly/releases/tag/${{ steps.latest.outputs.version }}
-          branch: update-pyrefly-${{ steps.latest.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: update pyrefly to ${{ steps.latest.outputs.version }}"
+          git push
