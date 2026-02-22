@@ -58,7 +58,7 @@
           installPhase = ''
             runHook preInstall
             mkdir -p $out/bin
-            cp */pyrefly $out/bin/
+            cp pyrefly $out/bin/
             chmod +x $out/bin/pyrefly
             runHook postInstall
           '';
