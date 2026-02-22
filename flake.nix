@@ -1,5 +1,3 @@
-# based on:
-# https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/py/pyrefly/package.nix
 {
   description = "Pyrefly - A fast type checker and IDE for Python";
   inputs = {
@@ -16,47 +14,73 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        version = "0.53.0";
+
+        x86_64-linux = pkgs.fetchurl {
+          url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-linux-x86_64.tar.gz";
+          hash = "sha256-90fU5F5RTjnhbNvl9pseSMq5PAGNmFu4CAtmRN8Wsa0=";
+        };
+
+        aarch64-linux = pkgs.fetchurl {
+          url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-linux-arm64.tar.gz";
+          hash = "sha256-pjqfBmFYrSL5+7W1AmwJocpqdlV6uUBWbA+pP4Go0ZE=";
+        };
+
+        x86_64-darwin = pkgs.fetchurl {
+          url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-macos-x86_64.tar.gz";
+          hash = "sha256-o2/fbAwMjwBpoRFeYwnjl1edBP4raextQunvmIcumAs=";
+        };
+
+        aarch64-darwin = pkgs.fetchurl {
+          url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-macos-arm64.tar.gz";
+          hash = "sha256-kS398mHselYK0/YEB9TmyElPxCP5jSnpmbcLDmVPjuc=";
+        };
       in
       {
-        packages = {
-          pyrefly = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
-            pname = "pyrefly";
-            version = "0.52.0";
-
-            src = pkgs.fetchFromGitHub {
-              owner = "facebook";
-              repo = "pyrefly";
-              tag = finalAttrs.version;
-              hash = "sha256-UvYM+j26qIe5yQNp0ttEvdrEoYFDvWY6xFGS0bMFXT4=";
-            };
-
-            buildAndTestSubdir = "pyrefly";
-            cargoHash = "sha256-gzaRZys2F9fyv0Q0gAAg3UdxF9rMMI6+lzZPhnrVC00=";
-
-            nativeInstallCheckInputs = [ pkgs.versionCheckHook ];
-            doInstallCheck = true;
-            doCheck = false; # skip cargo tests
-
-            # Requires unstable rust features
-            env.RUSTC_BOOTSTRAP = 1;
-
-            meta = with pkgs.lib; {
-              description = "Fast type checker and IDE for Python";
-              homepage = "https://github.com/facebook/pyrefly";
-              license = licenses.mit;
-              mainProgram = "pyrefly";
-              platforms = platforms.linux ++ platforms.darwin;
-              maintainers = [ ];
-            };
-          });
-          default = self.packages.${system}.pyrefly;
-        };
-        apps = {
-          pyrefly = flake-utils.lib.mkApp {
-            drv = self.packages.${system}.pyrefly;
+        packages.pyrefly = pkgs.stdenv.mkDerivation {
+          pname = "pyrefly";
+          inherit version;
+          src =
+            {
+              inherit
+                x86_64-linux
+                aarch64-linux
+                x86_64-darwin
+                aarch64-darwin
+                ;
+            }
+            .${system};
+          sourceRoot = ".";
+          nativeBuildInputs = [ pkgs.autoPatchelfHook ];
+          buildInputs = with pkgs; [
+            stdenv.cc.cc.lib
+          ];
+          installPhase = ''
+            runHook preInstall
+            mkdir -p $out/bin
+            cp */pyrefly $out/bin/
+            chmod +x $out/bin/pyrefly
+            runHook postInstall
+          '';
+          meta = with pkgs.lib; {
+            description = "A fast type checker and IDE for Python";
+            homepage = "https://github.com/facebook/pyrefly";
+            license = licenses.mit;
+            mainProgram = "pyrefly";
+            platforms = [
+              "x86_64-linux"
+              "aarch64-linux"
+              "x86_64-darwin"
+              "aarch64-darwin"
+            ];
+            maintainers = [ ];
           };
-          default = self.apps.${system}.pyrefly;
         };
+        packages.default = self.packages.${system}.pyrefly;
+        apps.pyrefly = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.pyrefly;
+        };
+        apps.default = self.apps.${system}.pyrefly;
       }
     );
 }

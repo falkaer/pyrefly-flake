@@ -1,9 +1,8 @@
 name: Update Pyrefly
 on:
   schedule:
-    # Check for new releases daily at 00:00 UTC
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -15,26 +14,25 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-      - name: Get latest pyrefly version
-        id: latest
+      - name: Run update script
         run: |
-          LATEST=$(curl -s https://api.github.com/repos/facebook/pyrefly/releases/latest | jq -r .tag_name)
-          echo "version=$LATEST" >> $GITHUB_OUTPUT
-      - name: Get current version
-        id: current
-        run: |
-          CURRENT=$(nix eval --raw .#pyrefly.version)
-          echo "version=$CURRENT" >> $GITHUB_OUTPUT
-      - name: Update flake if new version available
-        if: steps.latest.outputs.version != steps.current.outputs.version
-        run: |
-          nix run nixpkgs#nix-update -- --flake --version=${{ steps.latest.outputs.version }} pyrefly
+          bash update.sh
           nix flake update
-      - name: Commit and push changes
-        if: steps.latest.outputs.version != steps.current.outputs.version
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet flake.nix; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            VERSION=$(nix eval --raw .#pyrefly.version)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+      - name: Commit and push
+        if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "chore: update pyrefly to ${{ steps.latest.outputs.version }}"
+          git add flake.nix
+          git commit -m "chore: update pyrefly to ${{ steps.changes.outputs.version }}"
           git push
