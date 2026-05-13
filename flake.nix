@@ -14,26 +14,26 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        version = "0.64.1";
+        version = "1.0.0";
 
         x86_64-linux = pkgs.fetchurl {
           url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-linux-x86_64.tar.gz";
-          hash = "sha256-lllXxDTjejaO10RgMI9YJFYwoYroKCApeKp3yEvo2bc=";
+          hash = "sha256-izUxi6c3emIf+dnvd6RDtq088GW+VmyE9a6cgxjfVFk=";
         };
 
         aarch64-linux = pkgs.fetchurl {
           url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-linux-arm64.tar.gz";
-          hash = "sha256-xEcwJq/tN9dZr5i9z+2u92hQkw8eDhQguvX35445pAg=";
+          hash = "sha256-D0oHW1EMVgifZyxyg1KDmGVv0KVBENaDaRnONNvxXAs=";
         };
 
         x86_64-darwin = pkgs.fetchurl {
           url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-macos-x86_64.tar.gz";
-          hash = "sha256-4mdS0m4aP4kjR1a0+mt7DXbk4anCAtz7wd3C/bwzMb0=";
+          hash = "sha256-oVLHp3WqMIjnr1JXMwujfX2FM3oOhYI7TcLbVWt8Oc8=";
         };
 
         aarch64-darwin = pkgs.fetchurl {
           url = "https://github.com/facebook/pyrefly/releases/download/${version}/pyrefly-macos-arm64.tar.gz";
-          hash = "sha256-7fhIWThlfAGsXYkVjVVtJ1zacweJaPSwsmYXVb6/THM=";
+          hash = "sha256-88InckVnewEoCZ9Jca4RycSk2aOarXBETC95qdZLaJM=";
         };
       in
       {
